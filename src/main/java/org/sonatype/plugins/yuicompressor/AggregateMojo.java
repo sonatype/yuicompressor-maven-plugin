@@ -163,6 +163,11 @@ public class AggregateMojo
                     }
                 }
 
+                if ( !output.getParentFile().mkdirs() )
+                {
+                    throw new MojoExecutionException( "Could not create output directory " + output.getParent() );
+                }
+
                 OutputStream out = buildContext.newFileOutputStream( output );
                 try
                 {
