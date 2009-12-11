@@ -58,12 +58,15 @@
         <configuration>
           <debug>true</debug>
           <projectsDirectory>src/it</projectsDirectory>
+          <localRepositoryPath>target/local-repo</localRepositoryPath>
+          <settingsFile>src/it/settings.xml</settingsFile>
           <postBuildHookScript>verify.bsh</postBuildHookScript>
         </configuration>
         <executions>
           <execution>
             <id>integration-test</id>
             <goals>
+              <goal>install</goal>
               <goal>run</goal>
             </goals>
           </execution>
