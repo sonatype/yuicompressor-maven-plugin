@@ -91,6 +91,13 @@ public class AggregateMojo
      * @parameter default-value="true"
      */
     private boolean insertNewLine;
+    
+    /**
+     * [js only] Aggregate only, no minification.
+     * 
+     * @parameter expression="${maven.yuicompressor.nominify}" default-value="false"
+     */
+    private boolean nominify;
 
     /** @component */
     private BuildContext buildContext;
@@ -149,9 +156,18 @@ public class AggregateMojo
                                                                                                   relPath ) ) ) );
                     try
                     {
-                        JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
-                        compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons,
-                                             disableOptimizations );
+                        // don't minify, simply write directly out to buffer
+                        if ( nominify )
+                        {
+                            IOUtil.copy( in, buf );
+                        }
+                        // compress away then write out to buffer
+                        else
+                        {
+                            JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
+                            compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons,
+                                                 disableOptimizations );
+                        }
                     }
                     finally
                     {
