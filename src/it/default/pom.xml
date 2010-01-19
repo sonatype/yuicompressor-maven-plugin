@@ -7,7 +7,7 @@
   <version>0.0.1-SNAPSHOT</version>
 
   <properties>
-    <plugin-version>0.0.1-SNAPSHOT</plugin-version>
+    <plugin-version>0.0.1</plugin-version>
   </properties>
 
   <build>
