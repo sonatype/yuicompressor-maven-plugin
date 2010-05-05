@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,6 +36,11 @@ public class AggregateMojo
      * @parameter default-value="${basedir}/src/main/js"
      */
     private File sourceDirectory;
+
+    /**
+     * @parameter
+     */
+    private String[] sourceFiles;
 
     /**
      * @parameter
@@ -91,7 +98,7 @@ public class AggregateMojo
      * @parameter default-value="true"
      */
     private boolean insertNewLine;
-    
+
     /**
      * [js only] Aggregate only, no minification.
      * 
@@ -103,20 +110,37 @@ public class AggregateMojo
     private BuildContext buildContext;
 
     public void execute()
-        throws MojoExecutionException, MojoFailureException
+        throws MojoExecutionException,
+            MojoFailureException
     {
-        // always scan all sources
-        Scanner scanner = buildContext.newScanner( sourceDirectory, true );
-        scanner.setIncludes( includes != null ? includes : DEFAULT_INCLUDES );
-        scanner.setExcludes( excludes );
-        scanner.addDefaultExcludes();
-        scanner.scan();
+        List<File> sources = new ArrayList<File>();
+
+        if ( sourceFiles != null && sourceFiles.length > 0 )
+        {
+            for ( String sourceFile : sourceFiles )
+            {
+                sources.add( new File( sourceFile ) );
+            }
+        }
+        else
+        {
+            Scanner scanner = buildContext.newScanner( sourceDirectory, true );
+            scanner.setIncludes( includes != null ? includes : DEFAULT_INCLUDES );
+            scanner.setExcludes( excludes );
+            scanner.addDefaultExcludes();
+            scanner.scan();
+
+            for ( String relPath : scanner.getIncludedFiles() )
+            {
+                sources.add( new File( sourceDirectory, relPath ) );
+            }
+        }
 
         // see if there are any changes we need to include in the aggregate
         boolean uptodate = true;
-        for ( String relPath : scanner.getIncludedFiles() )
+        for ( File source : sources )
         {
-            uptodate = buildContext.isUptodate( output, new File( sourceDirectory, relPath ) );
+            uptodate = buildContext.isUptodate( output, source );
             if ( !uptodate )
             {
                 break;
@@ -138,7 +162,7 @@ public class AggregateMojo
                 }
 
                 public EvaluatorException runtimeError( String message, String sourceName, int line, String lineSource,
-                                                        int lineOffset )
+                    int lineOffset )
                 {
                     buildContext.addError( new File( sourceName ), line, lineOffset, message, null );
                     throw new EvaluatorException( message, sourceName, line, lineSource, lineOffset );
@@ -149,11 +173,9 @@ public class AggregateMojo
             {
                 StringWriter buf = new StringWriter();
 
-                for ( String relPath : scanner.getIncludedFiles() )
+                for ( File source : sources )
                 {
-                    Reader in =
-                        new BufferedReader( new InputStreamReader( new FileInputStream( new File( sourceDirectory,
-                                                                                                  relPath ) ) ) );
+                    Reader in = new BufferedReader( new InputStreamReader( new FileInputStream( source ) ) );
                     try
                     {
                         // don't minify, simply write directly out to buffer
@@ -165,8 +187,13 @@ public class AggregateMojo
                         else
                         {
                             JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
-                            compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons,
-                                                 disableOptimizations );
+                            compressor.compress(
+                                buf,
+                                linebreakpos,
+                                !nomunge,
+                                jswarn,
+                                preserveAllSemiColons,
+                                disableOptimizations );
                         }
                     }
                     finally
