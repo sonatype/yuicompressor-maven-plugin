@@ -10,6 +10,7 @@
   <artifactId>yuicompressor-maven-plugin</artifactId>
   <version>0.0.2-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
+  <name>YUI Compressor Maven Plugin</name>
 
   <dependencies>
     <dependency>
