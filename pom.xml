@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>yuicompressor-maven-plugin</artifactId>
-  <version>y</version>
+  <version>0.0.3-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <dependencies>
@@ -105,10 +105,4 @@
       </build>
     </profile>
   </profiles>
-
-  <scm>
-    <connection>scm:svn:http://svn.sonatype.org/plugins/tags/yuicompressor-maven-plugin-y</connection>
-    <developerConnection>scm:svn:https://svn.sonatype.org/plugins/tags/yuicompressor-maven-plugin-y</developerConnection>
-    <url>http://svn.sonatype.org/plugins/tags/yuicompressor-maven-plugin-y</url>
-  </scm>
 </project>
