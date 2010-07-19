@@ -6,16 +6,12 @@
   <artifactId>with-source-files</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <properties>
-    <plugin-version>0.0.2-SNAPSHOT</plugin-version>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>yuicompressor-maven-plugin</artifactId>
-        <version>${plugin-version}</version>
+        <version>@pom.version@</version>
         <executions>
           <execution>
             <goals>

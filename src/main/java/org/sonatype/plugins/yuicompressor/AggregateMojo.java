@@ -110,8 +110,7 @@ public class AggregateMojo
     private BuildContext buildContext;
 
     public void execute()
-        throws MojoExecutionException,
-            MojoFailureException
+        throws MojoExecutionException, MojoFailureException
     {
         List<File> sources = new ArrayList<File>();
 
@@ -162,7 +161,7 @@ public class AggregateMojo
                 }
 
                 public EvaluatorException runtimeError( String message, String sourceName, int line, String lineSource,
-                    int lineOffset )
+                                                        int lineOffset )
                 {
                     buildContext.addError( new File( sourceName ), line, lineOffset, message, null );
                     throw new EvaluatorException( message, sourceName, line, lineSource, lineOffset );
@@ -187,12 +186,7 @@ public class AggregateMojo
                         else
                         {
                             JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
-                            compressor.compress(
-                                buf,
-                                linebreakpos,
-                                !nomunge,
-                                jswarn,
-                                preserveAllSemiColons,
+                            compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons,
                                 disableOptimizations );
                         }
                     }
