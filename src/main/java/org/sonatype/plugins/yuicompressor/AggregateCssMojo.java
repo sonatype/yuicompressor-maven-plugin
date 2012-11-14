@@ -27,7 +27,7 @@ public class AggregateCssMojo
     private File output;
 
     @Override
-    protected void processSourceFile( Reader in, Writer buf )
+    protected void processSourceFile( File source, Reader in, Writer buf )
         throws IOException
     {
         CssCompressor compressor = new CssCompressor( in );

@@ -119,7 +119,7 @@ abstract class AbstractAggregateMojo
                         // compress away then write out to buffer
                         else
                         {
-                            processSourceFile( in, buf );
+                            processSourceFile( source, in, buf );
                         }
                     }
                     finally
@@ -158,7 +158,7 @@ abstract class AbstractAggregateMojo
 
     protected abstract File getSourceDirectory();
 
-    protected abstract void processSourceFile( Reader in, Writer buf )
+    protected abstract void processSourceFile( File source, Reader in, Writer buf )
         throws IOException;
 
 }

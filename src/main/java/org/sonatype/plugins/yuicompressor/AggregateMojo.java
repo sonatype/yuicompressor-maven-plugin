@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
-import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.EvaluatorException;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -58,51 +57,39 @@ public class AggregateMojo
      */
     private boolean jswarn;
 
-    private ErrorReporter errorReporter = new ErrorReporter()
+    private class ErrorReporter
+        implements org.mozilla.javascript.ErrorReporter
     {
+        private final File source;
+
+        public ErrorReporter( File source )
+        {
+            this.source = source;
+        }
+
         public void error( String message, String sourceName, int line, String lineSource, int lineOffset )
         {
-            if ( sourceName != null )
-            {
-                buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
-                                         BuildContext.SEVERITY_ERROR, null );
-            }
-            else
-            {
-                getLog().error( message );
-            }
+            buildContext.addMessage( source, line, lineOffset, message, BuildContext.SEVERITY_ERROR, null );
         }
 
         public void warning( String message, String sourceName, int line, String lineSource, int lineOffset )
         {
-            if ( sourceName != null )
-            {
-                buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
-                                         BuildContext.SEVERITY_WARNING, null );
-            }
-            else
-            {
-                getLog().warn( message );
-            }
+            buildContext.addMessage( source, line, lineOffset, message, BuildContext.SEVERITY_WARNING, null );
         }
 
         public EvaluatorException runtimeError( String message, String sourceName, int line, String lineSource,
                                                 int lineOffset )
         {
-            if ( sourceName != null )
-            {
-                buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
-                                         BuildContext.SEVERITY_ERROR, null );
-            }
+            buildContext.addMessage( source, line, lineOffset, message, BuildContext.SEVERITY_ERROR, null );
             throw new EvaluatorException( message, sourceName, line, lineSource, lineOffset );
         }
     };
 
     @Override
-    protected void processSourceFile( Reader in, Writer buf )
+    protected void processSourceFile( File source, Reader in, Writer buf )
         throws IOException
     {
-        JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
+        JavaScriptCompressor compressor = new JavaScriptCompressor( in, new ErrorReporter( source ) );
         compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons, disableOptimizations );
     }
 
