@@ -152,18 +152,38 @@ public class AggregateMojo
             {
                 public void error( String message, String sourceName, int line, String lineSource, int lineOffset )
                 {
-                    buildContext.addError( new File( sourceName ), line, lineOffset, message, null );
+                    if ( sourceName != null )
+                    {
+                        buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
+                                                 BuildContext.SEVERITY_ERROR, null );
+                    }
+                    else
+                    {
+                        getLog().error( message );
+                    }
                 }
 
                 public void warning( String message, String sourceName, int line, String lineSource, int lineOffset )
                 {
-                    buildContext.addWarning( new File( sourceName ), line, lineOffset, message, null );
+                    if ( sourceName != null )
+                    {
+                        buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
+                                                 BuildContext.SEVERITY_WARNING, null );
+                    }
+                    else
+                    {
+                        getLog().warn( message );
+                    }
                 }
 
                 public EvaluatorException runtimeError( String message, String sourceName, int line, String lineSource,
                                                         int lineOffset )
                 {
-                    buildContext.addError( new File( sourceName ), line, lineOffset, message, null );
+                    if ( sourceName != null )
+                    {
+                        buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
+                                                 BuildContext.SEVERITY_ERROR, null );
+                    }
                     throw new EvaluatorException( message, sourceName, line, lineSource, lineOffset );
                 }
             };
@@ -187,7 +207,7 @@ public class AggregateMojo
                         {
                             JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
                             compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons,
-                                disableOptimizations );
+                                                 disableOptimizations );
                         }
                     }
                     finally
