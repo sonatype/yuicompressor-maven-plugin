@@ -6,6 +6,7 @@
         <artifactId>yuicompressor-maven-plugin</artifactId>
         <goals>
           <goal>aggregate</goal>
+          <goal>aggregate-css</goal>
         </goals>
       </pluginExecutionFilter>
       <action>

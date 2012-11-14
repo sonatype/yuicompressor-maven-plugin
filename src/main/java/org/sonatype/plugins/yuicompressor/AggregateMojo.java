@@ -1,21 +1,10 @@
 package org.sonatype.plugins.yuicompressor;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Writer;
 
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.Scanner;
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.EvaluatorException;
 import org.sonatype.plexus.build.incremental.BuildContext;
@@ -27,9 +16,8 @@ import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
  * @phase process-resources
  */
 public class AggregateMojo
-    extends AbstractMojo
+    extends AbstractAggregateMojo
 {
-
     public static final String[] DEFAULT_INCLUDES = { "**/*.js" };
 
     /**
@@ -38,31 +26,9 @@ public class AggregateMojo
     private File sourceDirectory;
 
     /**
-     * @parameter
-     */
-    private String[] sourceFiles;
-
-    /**
-     * @parameter
-     */
-    private String[] includes;
-
-    /**
-     * @parameter
-     */
-    private String[] excludes;
-
-    /**
      * @parameter default-value="${project.build.outputDirectory}/${project.artifactId}-all.js"
      */
     private File output;
-
-    /**
-     * Insert line breaks in output after the specified column number.
-     * 
-     * @parameter expression="${maven.yuicompressor.linebreakpos}" default-value="0"
-     */
-    private int linebreakpos;
 
     /**
      * [js only] Minify only, do not obfuscate.
@@ -92,151 +58,69 @@ public class AggregateMojo
      */
     private boolean jswarn;
 
-    /**
-     * Insert new line after each concatenation.
-     * 
-     * @parameter default-value="true"
-     */
-    private boolean insertNewLine;
-
-    /**
-     * [js only] Aggregate only, no minification.
-     * 
-     * @parameter expression="${maven.yuicompressor.nominify}" default-value="false"
-     */
-    private boolean nominify;
-
-    /** @component */
-    private BuildContext buildContext;
-
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
+    private ErrorReporter errorReporter = new ErrorReporter()
     {
-        List<File> sources = new ArrayList<File>();
-
-        if ( sourceFiles != null && sourceFiles.length > 0 )
+        public void error( String message, String sourceName, int line, String lineSource, int lineOffset )
         {
-            for ( String sourceFile : sourceFiles )
+            if ( sourceName != null )
             {
-                sources.add( new File( sourceFile ) );
+                buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
+                                         BuildContext.SEVERITY_ERROR, null );
             }
-        }
-        else
-        {
-            Scanner scanner = buildContext.newScanner( sourceDirectory, true );
-            scanner.setIncludes( includes != null ? includes : DEFAULT_INCLUDES );
-            scanner.setExcludes( excludes );
-            scanner.addDefaultExcludes();
-            scanner.scan();
-
-            for ( String relPath : scanner.getIncludedFiles() )
+            else
             {
-                sources.add( new File( sourceDirectory, relPath ) );
+                getLog().error( message );
             }
         }
 
-        // see if there are any changes we need to include in the aggregate
-        boolean uptodate = true;
-        for ( File source : sources )
+        public void warning( String message, String sourceName, int line, String lineSource, int lineOffset )
         {
-            uptodate = buildContext.isUptodate( output, source );
-            if ( !uptodate )
+            if ( sourceName != null )
             {
-                break;
+                buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
+                                         BuildContext.SEVERITY_WARNING, null );
+            }
+            else
+            {
+                getLog().warn( message );
             }
         }
 
-        if ( !uptodate )
+        public EvaluatorException runtimeError( String message, String sourceName, int line, String lineSource,
+                                                int lineOffset )
         {
-            ErrorReporter errorReporter = new ErrorReporter()
+            if ( sourceName != null )
             {
-                public void error( String message, String sourceName, int line, String lineSource, int lineOffset )
-                {
-                    if ( sourceName != null )
-                    {
-                        buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
-                                                 BuildContext.SEVERITY_ERROR, null );
-                    }
-                    else
-                    {
-                        getLog().error( message );
-                    }
-                }
-
-                public void warning( String message, String sourceName, int line, String lineSource, int lineOffset )
-                {
-                    if ( sourceName != null )
-                    {
-                        buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
-                                                 BuildContext.SEVERITY_WARNING, null );
-                    }
-                    else
-                    {
-                        getLog().warn( message );
-                    }
-                }
-
-                public EvaluatorException runtimeError( String message, String sourceName, int line, String lineSource,
-                                                        int lineOffset )
-                {
-                    if ( sourceName != null )
-                    {
-                        buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
-                                                 BuildContext.SEVERITY_ERROR, null );
-                    }
-                    throw new EvaluatorException( message, sourceName, line, lineSource, lineOffset );
-                }
-            };
-
-            try
-            {
-                StringWriter buf = new StringWriter();
-
-                for ( File source : sources )
-                {
-                    Reader in = new BufferedReader( new InputStreamReader( new FileInputStream( source ) ) );
-                    try
-                    {
-                        // don't minify, simply write directly out to buffer
-                        if ( nominify )
-                        {
-                            IOUtil.copy( in, buf );
-                        }
-                        // compress away then write out to buffer
-                        else
-                        {
-                            JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
-                            compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons,
-                                                 disableOptimizations );
-                        }
-                    }
-                    finally
-                    {
-                        IOUtil.close( in );
-                    }
-                    if ( insertNewLine )
-                    {
-                        buf.write( '\n' );
-                    }
-                }
-
-                output.getParentFile().mkdirs();
-
-                OutputStream out = buildContext.newFileOutputStream( output );
-                try
-                {
-                    IOUtil.copy( buf.getBuffer().toString(), out );
-                }
-                finally
-                {
-                    IOUtil.close( out );
-                }
+                buildContext.addMessage( new File( sourceName ), line, lineOffset, message,
+                                         BuildContext.SEVERITY_ERROR, null );
             }
-            catch ( IOException e )
-            {
-                throw new MojoExecutionException( "Could not create aggregate javascript file", e );
-            }
+            throw new EvaluatorException( message, sourceName, line, lineSource, lineOffset );
         }
+    };
+
+    @Override
+    protected void processSourceFile( Reader in, Writer buf )
+        throws IOException
+    {
+        JavaScriptCompressor compressor = new JavaScriptCompressor( in, errorReporter );
+        compressor.compress( buf, linebreakpos, !nomunge, jswarn, preserveAllSemiColons, disableOptimizations );
     }
 
+    @Override
+    protected String[] getDefaultIncludes()
+    {
+        return DEFAULT_INCLUDES;
+    }
+
+    @Override
+    protected File getOutput()
+    {
+        return output;
+    }
+
+    @Override
+    protected File getSourceDirectory()
+    {
+        return sourceDirectory;
+    }
 }
