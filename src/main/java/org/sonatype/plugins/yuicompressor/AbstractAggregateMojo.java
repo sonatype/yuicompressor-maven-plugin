@@ -9,34 +9,14 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.Scanner;
-import org.sonatype.plexus.build.incremental.BuildContext;
 
 abstract class AbstractAggregateMojo
-    extends AbstractMojo
+    extends AbstractProcessSourcesMojo
 {
-    /**
-     * @parameter
-     */
-    protected String[] sourceFiles;
-
-    /**
-     * @parameter
-     */
-    protected String[] includes;
-
-    /**
-     * @parameter
-     */
-    protected String[] excludes;
-
     /**
      * Insert line breaks in output after the specified column number.
      * 
@@ -58,35 +38,10 @@ abstract class AbstractAggregateMojo
      */
     protected boolean insertNewLine;
 
-    /** @component */
-    protected BuildContext buildContext;
-
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
+    @Override
+    protected void processSources( List<File> sources )
+        throws MojoExecutionException
     {
-        List<File> sources = new ArrayList<File>();
-
-        if ( sourceFiles != null && sourceFiles.length > 0 )
-        {
-            for ( String sourceFile : sourceFiles )
-            {
-                sources.add( new File( sourceFile ) );
-            }
-        }
-        else
-        {
-            Scanner scanner = buildContext.newScanner( getSourceDirectory(), true );
-            scanner.setIncludes( includes != null ? includes : getDefaultIncludes() );
-            scanner.setExcludes( excludes );
-            scanner.addDefaultExcludes();
-            scanner.scan();
-
-            for ( String relPath : scanner.getIncludedFiles() )
-            {
-                sources.add( new File( getSourceDirectory(), relPath ) );
-            }
-        }
-
         File output = getOutput();
 
         // see if there are any changes we need to include in the aggregate
@@ -153,10 +108,6 @@ abstract class AbstractAggregateMojo
     }
 
     protected abstract File getOutput();
-
-    protected abstract String[] getDefaultIncludes();
-
-    protected abstract File getSourceDirectory();
 
     protected abstract void processSourceFile( File source, Reader in, Writer buf )
         throws IOException;
