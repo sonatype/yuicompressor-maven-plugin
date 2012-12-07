@@ -12,7 +12,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 abstract class AbstractProcessSourcesMojo
     extends AbstractMojo
 {
-    
+
     /**
      * Explicit list of sources to process. If specified, sourceDirectory/sourceDirectory/excludes are ignored.
      * 
@@ -34,6 +34,15 @@ abstract class AbstractProcessSourcesMojo
      */
     protected String[] excludes;
 
+    /**
+     * Whether sources are required (the default) or optional. The build will fail if sources are not present and value
+     * of this parameter is <code>true</code>. Setting to <code>false</code> can be useful when mojo is configured in
+     * parent pom.xml and applies to multiple modules.
+     * 
+     * @parameter default-value="true"
+     */
+    protected boolean required;
+
     /** @component */
     protected BuildContext buildContext;
 
@@ -51,19 +60,35 @@ abstract class AbstractProcessSourcesMojo
         }
         else
         {
-            Scanner scanner = buildContext.newScanner( getSourceDirectory(), true );
-            scanner.setIncludes( includes != null ? includes : getDefaultIncludes() );
-            scanner.setExcludes( excludes );
-            scanner.addDefaultExcludes();
-            scanner.scan();
-
-            for ( String relPath : scanner.getIncludedFiles() )
+            File sourceDirectory = getSourceDirectory();
+            if ( sourceDirectory.exists() )
             {
-                sources.add( new File( getSourceDirectory(), relPath ) );
+                Scanner scanner = buildContext.newScanner( sourceDirectory, true );
+                scanner.setIncludes( includes != null ? includes : getDefaultIncludes() );
+                scanner.setExcludes( excludes );
+                scanner.addDefaultExcludes();
+                scanner.scan();
+
+                for ( String relPath : scanner.getIncludedFiles() )
+                {
+                    sources.add( new File( sourceDirectory, relPath ) );
+                }
+            }
+            else
+            {
+                getLog().warn( "Source directory " + sourceDirectory + " does not exist." );
             }
         }
 
-        processSources( sources );
+        if ( sources.isEmpty() && required )
+        {
+            throw new MojoExecutionException( "No sources to process" );
+        }
+
+        if ( !sources.isEmpty() )
+        {
+            processSources( sources );
+        }
     }
 
     protected abstract void processSources( List<File> sources )
