@@ -12,6 +12,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 abstract class AbstractProcessSourcesMojo
     extends AbstractMojo
 {
+    
     /**
      * Explicit list of sources to process. If specified, sourceDirectory/sourceDirectory/excludes are ignored.
      * 
