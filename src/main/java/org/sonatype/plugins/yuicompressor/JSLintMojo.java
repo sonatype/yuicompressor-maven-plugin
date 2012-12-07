@@ -61,6 +61,13 @@ public class JSLintMojo
     protected void processSource( File source, Context cx )
         throws IOException, MojoExecutionException
     {
+        if ( !buildContext.hasDelta( source ) )
+        {
+            return;
+        }
+
+        buildContext.removeMessages( source );
+
         Scriptable scope = cx.initStandardObjects();
 
         Reader fr = new InputStreamReader( getClass().getResourceAsStream( "/jslint.js" ) );
