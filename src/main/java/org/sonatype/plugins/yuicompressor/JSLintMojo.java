@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.IOUtil;
@@ -30,6 +31,15 @@ public class JSLintMojo
      * @parameter default-value="${basedir}/src/main/js"
      */
     private File sourceDirectory;
+
+    /**
+     * JSLint options, a map, where key is jslint option name and value either true or false.
+     * 
+     * @TODO support non-boolean options
+     * @see https://github.com/douglascrockford/JSLint/blob/master/jslint.js
+     * @parameter
+     */
+    private Map<String, String> jslintOptions;
 
     /**
      * @parameter default-value="true"
@@ -87,7 +97,13 @@ public class JSLintMojo
         Function jslint = (Function) scope.get( "JSLINT", scope );
 
         Scriptable options = cx.newObject( scope );
-        // options.put( "eqeq", options, true );
+        if ( jslintOptions != null )
+        {
+            for ( Map.Entry<String, String> option : jslintOptions.entrySet() )
+            {
+                options.put( option.getKey(), options, toBoolean( option.getValue() ) );
+            }
+        }
 
         Object[] jsargs = { loadSource( source ), options };
 
@@ -115,6 +131,11 @@ public class JSLintMojo
         }
 
         return passed;
+    }
+
+    private boolean toBoolean( String value )
+    {
+        return Boolean.parseBoolean( value );
     }
 
     private String loadSource( File source )

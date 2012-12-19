@@ -1,0 +1,1 @@
+var getElementByAttribute, breakCycles, hanoi;   
