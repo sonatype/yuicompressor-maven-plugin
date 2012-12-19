@@ -40,12 +40,13 @@ public class JSLintMojo
     protected void processSources( List<File> sources )
         throws MojoExecutionException
     {
+        boolean passed = true;
         for ( File source : sources )
         {
             Context cx = Context.enter();
             try
             {
-                processSource( source, cx );
+                passed = processSource( source, cx ) && passed;
             }
             catch ( IOException e )
             {
@@ -56,14 +57,24 @@ public class JSLintMojo
                 Context.exit();
             }
         }
+
+        if ( fail && !passed )
+        {
+            throw new MojoExecutionException( "There were jslint errors" );
+        }
+
     }
 
-    protected void processSource( File source, Context cx )
+    /**
+     * Returns <code>true</code> if all jslint tests passed, <code>false</code> if there were problems.
+     */
+    protected boolean processSource( File source, Context cx )
         throws IOException, MojoExecutionException
     {
         if ( !buildContext.hasDelta( source ) )
         {
-            return;
+            // limitation of buildcontext api, no way to report errors from previous executions
+            return true;
         }
 
         buildContext.removeMessages( source );
@@ -89,6 +100,11 @@ public class JSLintMojo
             for ( int i = 0; i < errors.getLength(); i++ )
             {
                 Scriptable error = (Scriptable) errors.get( i, errors );
+                if ( error == null )
+                {
+                    // apparent bug in jslint, when "too many errors" is reported, last array element is null
+                    continue;
+                }
                 int line = ( (Number) ScriptableObject.getProperty( error, "line" ) ).intValue();
                 int column = ( (Number) ScriptableObject.getProperty( error, "character" ) ).intValue();
                 String reason = (String) ScriptableObject.getProperty( error, "reason" );
@@ -96,12 +112,9 @@ public class JSLintMojo
                 int severity = fail ? BuildContext.SEVERITY_ERROR : BuildContext.SEVERITY_WARNING;
                 buildContext.addMessage( source, line, column, reason, severity, null );
             }
-
-            if ( fail && errors.getLength() > 0 )
-            {
-                throw new MojoExecutionException( "There were jslint errors" );
-            }
         }
+
+        return passed;
     }
 
     private String loadSource( File source )
