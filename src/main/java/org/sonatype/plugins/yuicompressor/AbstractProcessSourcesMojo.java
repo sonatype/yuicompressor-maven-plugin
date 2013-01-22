@@ -16,6 +16,7 @@ abstract class AbstractProcessSourcesMojo
     /**
      * Explicit list of sources to process. If specified, sourceDirectory/sourceDirectory/excludes are ignored.
      * 
+     * @deprecated <sourceFiles> will be removed shortly, use <includes>.
      * @parameter
      */
     protected String[] sourceFiles;
@@ -57,21 +58,31 @@ abstract class AbstractProcessSourcesMojo
             {
                 sources.add( new File( sourceFile ) );
             }
+            getLog().warn( "<sourceFiles> will be removed shortly, use <includes>" );
         }
         else
         {
             File sourceDirectory = getSourceDirectory();
             if ( sourceDirectory.exists() )
             {
-                Scanner scanner = buildContext.newScanner( sourceDirectory, true );
-                scanner.setIncludes( includes != null ? includes : getDefaultIncludes() );
-                scanner.setExcludes( excludes );
-                scanner.addDefaultExcludes();
-                scanner.scan();
-
-                for ( String relPath : scanner.getIncludedFiles() )
+                if ( includes == null || includes.length <= 0 )
                 {
-                    sources.add( new File( sourceDirectory, relPath ) );
+                    Scanner scanner = buildContext.newScanner( sourceDirectory, true );
+                    scanner.setIncludes( getDefaultIncludes() );
+                    scanner.setExcludes( excludes );
+                    scanTo( sources, scanner );
+                }
+                else
+                {
+                    // honour <includes> order
+                    // TODO maybe do something about same file matching multiple includes
+                    for ( String include : includes )
+                    {
+                        Scanner scanner = buildContext.newScanner( sourceDirectory, true );
+                        scanner.setIncludes( new String[] { include } );
+                        scanner.setExcludes( excludes );
+                        scanTo( sources, scanner );
+                    }
                 }
             }
             else
@@ -88,6 +99,16 @@ abstract class AbstractProcessSourcesMojo
         if ( !sources.isEmpty() )
         {
             processSources( sources );
+        }
+    }
+
+    private void scanTo( List<File> sources, Scanner scanner )
+    {
+        scanner.addDefaultExcludes();
+        scanner.scan();
+        for ( String relPath : scanner.getIncludedFiles() )
+        {
+            sources.add( new File( scanner.getBasedir(), relPath ) );
         }
     }
 

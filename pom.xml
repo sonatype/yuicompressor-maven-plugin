@@ -57,6 +57,8 @@
         <configuration>
           <debug>true</debug>
           <projectsDirectory>src/it</projectsDirectory>
+          <cloneProjectsTo>target/it</cloneProjectsTo>
+          <cloneClean>true</cloneClean>
           <localRepositoryPath>target/local-repo</localRepositoryPath>
           <settingsFile>src/it/settings.xml</settingsFile>
           <postBuildHookScript>verify.bsh</postBuildHookScript>
