@@ -14,14 +14,6 @@ abstract class AbstractProcessSourcesMojo
 {
 
     /**
-     * Explicit list of sources to process. If specified, sourceDirectory/sourceDirectory/excludes are ignored.
-     * 
-     * @deprecated <sourceFiles> will be removed shortly, use <includes>.
-     * @parameter
-     */
-    protected String[] sourceFiles;
-
-    /**
      * List of sources includes patterns.
      * 
      * @parameter
@@ -52,43 +44,32 @@ abstract class AbstractProcessSourcesMojo
     {
         List<File> sources = new ArrayList<File>();
 
-        if ( sourceFiles != null && sourceFiles.length > 0 )
+        File sourceDirectory = getSourceDirectory();
+        if ( sourceDirectory.exists() )
         {
-            for ( String sourceFile : sourceFiles )
+            if ( includes == null || includes.length <= 0 )
             {
-                sources.add( new File( sourceFile ) );
-            }
-            getLog().warn( "<sourceFiles> will be removed shortly, use <includes>" );
-        }
-        else
-        {
-            File sourceDirectory = getSourceDirectory();
-            if ( sourceDirectory.exists() )
-            {
-                if ( includes == null || includes.length <= 0 )
-                {
-                    Scanner scanner = buildContext.newScanner( sourceDirectory, true );
-                    scanner.setIncludes( getDefaultIncludes() );
-                    scanner.setExcludes( excludes );
-                    scanTo( sources, scanner );
-                }
-                else
-                {
-                    // honour <includes> order
-                    // TODO maybe do something about same file matching multiple includes
-                    for ( String include : includes )
-                    {
-                        Scanner scanner = buildContext.newScanner( sourceDirectory, true );
-                        scanner.setIncludes( new String[] { include } );
-                        scanner.setExcludes( excludes );
-                        scanTo( sources, scanner );
-                    }
-                }
+                Scanner scanner = buildContext.newScanner( sourceDirectory, true );
+                scanner.setIncludes( getDefaultIncludes() );
+                scanner.setExcludes( excludes );
+                scanTo( sources, scanner );
             }
             else
             {
-                getLog().warn( "Source directory " + sourceDirectory + " does not exist." );
+                // honour <includes> order
+                // TODO maybe do something about same file matching multiple includes
+                for ( String include : includes )
+                {
+                    Scanner scanner = buildContext.newScanner( sourceDirectory, true );
+                    scanner.setIncludes( new String[] { include } );
+                    scanner.setExcludes( excludes );
+                    scanTo( sources, scanner );
+                }
             }
+        }
+        else
+        {
+            getLog().warn( "Source directory " + sourceDirectory + " does not exist." );
         }
 
         if ( sources.isEmpty() && required )
