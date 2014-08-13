@@ -72,6 +72,9 @@ public class AggregateMojo
    */
   private boolean jswarn;
 
+  /**
+   * YUI javascript compressor custom error reporting.
+   */
   private class ErrorReporter
       implements org.mozilla.javascript.ErrorReporter
   {
@@ -96,8 +99,6 @@ public class AggregateMojo
       throw new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
     }
   }
-
-  ;
 
   @Override
   protected void processSourceFile(File source, Reader in, Writer buf) throws IOException {
