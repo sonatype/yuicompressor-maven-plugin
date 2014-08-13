@@ -10,6 +10,7 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
  */
+
 package org.sonatype.plugins.yuicompressor;
 
 import java.io.File;
@@ -21,6 +22,8 @@ import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
+import org.sonatype.plexus.build.incremental.BuildContext;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.IOUtil;
 import org.mozilla.javascript.Context;
@@ -28,7 +31,6 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * @goal jslint
@@ -37,143 +39,120 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 public class JSLintMojo
     extends AbstractProcessSourcesMojo
 {
-    public static final String[] DEFAULT_INCLUDES = { "**/*.js" };
+  public static final String[] DEFAULT_INCLUDES = {"**/*.js"};
 
-    /**
-     * @parameter default-value="${basedir}/src/main/js"
-     */
-    private File sourceDirectory;
+  /**
+   * @parameter default-value="${basedir}/src/main/js"
+   */
+  private File sourceDirectory;
 
-    /**
-     * JSLint options, a map, where key is jslint option name and value either true or false.
-     * 
-     * @TODO support non-boolean options
-     * @see https://github.com/douglascrockford/JSLint/blob/master/jslint.js
-     * @parameter
-     */
-    private Map<String, String> jslintOptions;
+  /**
+   * JSLint options, a map, where key is jslint option name and value either true or false.
+   *
+   * @TODO support non-boolean options
+   * @parameter
+   * @see <a href="https://github.com/douglascrockford/JSLint/blob/master/jslint.js">jslint.hs</a>
+   */
+  private Map<String, String> jslintOptions;
 
-    /**
-     * @parameter default-value="true"
-     */
-    private boolean fail;
+  /**
+   * @parameter default-value="true"
+   */
+  private boolean fail;
 
-    @Override
-    protected void processSources( List<File> sources )
-        throws MojoExecutionException
-    {
-        boolean passed = true;
-        for ( File source : sources )
-        {
-            Context cx = Context.enter();
-            try
-            {
-                passed = processSource( source, cx ) && passed;
-            }
-            catch ( IOException e )
-            {
-                throw new MojoExecutionException( "Could not execute jslint on " + source, e );
-            }
-            finally
-            {
-                Context.exit();
-            }
-        }
-
-        if ( fail && !passed )
-        {
-            throw new MojoExecutionException( "There were jslint errors" );
-        }
-
+  @Override
+  protected void processSources(List<File> sources) throws MojoExecutionException {
+    boolean passed = true;
+    for (File source : sources) {
+      Context cx = Context.enter();
+      try {
+        passed = processSource(source, cx) && passed;
+      }
+      catch (IOException e) {
+        throw new MojoExecutionException("Could not execute jslint on " + source, e);
+      }
+      finally {
+        Context.exit();
+      }
     }
 
-    /**
-     * Returns <code>true</code> if all jslint tests passed, <code>false</code> if there were problems.
-     */
-    protected boolean processSource( File source, Context cx )
-        throws IOException, MojoExecutionException
-    {
-        if ( !buildContext.hasDelta( source ) )
-        {
-            // limitation of buildcontext api, no way to report errors from previous executions
-            return true;
-        }
-
-        buildContext.removeMessages( source );
-
-        Scriptable scope = cx.initStandardObjects();
-
-        Reader fr = new InputStreamReader( getClass().getResourceAsStream( "/jslint.js" ) );
-        cx.evaluateReader( scope, fr, "jslint.js", 0, null );
-
-        Function jslint = (Function) scope.get( "JSLINT", scope );
-
-        Scriptable options = cx.newObject( scope );
-        if ( jslintOptions != null )
-        {
-            for ( Map.Entry<String, String> option : jslintOptions.entrySet() )
-            {
-                options.put( option.getKey(), options, toBoolean( option.getValue() ) );
-            }
-        }
-
-        Object[] jsargs = { loadSource( source ), options };
-
-        boolean passed = (Boolean) jslint.call( cx, scope, scope, jsargs );
-
-        if ( !passed )
-        {
-            NativeArray errors = (NativeArray) jslint.get( "errors", jslint );
-
-            for ( int i = 0; i < errors.getLength(); i++ )
-            {
-                Scriptable error = (Scriptable) errors.get( i, errors );
-                if ( error == null )
-                {
-                    // apparent bug in jslint, when "too many errors" is reported, last array element is null
-                    continue;
-                }
-                int line = ( (Number) ScriptableObject.getProperty( error, "line" ) ).intValue();
-                int column = ( (Number) ScriptableObject.getProperty( error, "character" ) ).intValue();
-                String reason = (String) ScriptableObject.getProperty( error, "reason" );
-
-                int severity = fail ? BuildContext.SEVERITY_ERROR : BuildContext.SEVERITY_WARNING;
-                buildContext.addMessage( source, line, column, reason, severity, null );
-            }
-        }
-
-        return passed;
+    if (fail && !passed) {
+      throw new MojoExecutionException("There were jslint errors");
     }
 
-    private boolean toBoolean( String value )
-    {
-        return Boolean.parseBoolean( value );
+  }
+
+  /**
+   * Returns <code>true</code> if all jslint tests passed, <code>false</code> if there were problems.
+   */
+  protected boolean processSource(File source, Context cx) throws IOException, MojoExecutionException {
+    if (!buildContext.hasDelta(source)) {
+      // limitation of buildcontext api, no way to report errors from previous executions
+      return true;
     }
 
-    private String loadSource( File source )
-        throws IOException
-    {
-        InputStream is = new FileInputStream( source );
-        try
-        {
-            return IOUtil.toString( is );
+    buildContext.removeMessages(source);
+
+    Scriptable scope = cx.initStandardObjects();
+
+    Reader fr = new InputStreamReader(getClass().getResourceAsStream("/jslint.js"));
+    cx.evaluateReader(scope, fr, "jslint.js", 0, null);
+
+    Function jslint = (Function) scope.get("JSLINT", scope);
+
+    Scriptable options = cx.newObject(scope);
+    if (jslintOptions != null) {
+      for (Map.Entry<String, String> option : jslintOptions.entrySet()) {
+        options.put(option.getKey(), options, toBoolean(option.getValue()));
+      }
+    }
+
+    Object[] jsargs = {loadSource(source), options};
+
+    boolean passed = (Boolean) jslint.call(cx, scope, scope, jsargs);
+
+    if (!passed) {
+      NativeArray errors = (NativeArray) jslint.get("errors", jslint);
+
+      for (int i = 0; i < errors.getLength(); i++) {
+        Scriptable error = (Scriptable) errors.get(i, errors);
+        if (error == null) {
+          // apparent bug in jslint, when "too many errors" is reported, last array element is null
+          continue;
         }
-        finally
-        {
-            is.close();
-        }
+        int line = ((Number) ScriptableObject.getProperty(error, "line")).intValue();
+        int column = ((Number) ScriptableObject.getProperty(error, "character")).intValue();
+        String reason = (String) ScriptableObject.getProperty(error, "reason");
+
+        int severity = fail ? BuildContext.SEVERITY_ERROR : BuildContext.SEVERITY_WARNING;
+        buildContext.addMessage(source, line, column, reason, severity, null);
+      }
     }
 
-    @Override
-    protected String[] getDefaultIncludes()
-    {
-        return DEFAULT_INCLUDES;
-    }
+    return passed;
+  }
 
-    @Override
-    protected File getSourceDirectory()
-    {
-        return sourceDirectory;
-    }
+  private boolean toBoolean(String value) {
+    return Boolean.parseBoolean(value);
+  }
 
+  private String loadSource(File source) throws IOException {
+    InputStream is = new FileInputStream(source);
+    try {
+      return IOUtil.toString(is);
+    }
+    finally {
+      is.close();
+    }
+  }
+
+  @Override
+  protected String[] getDefaultIncludes() {
+    return DEFAULT_INCLUDES;
+  }
+
+  @Override
+  protected File getSourceDirectory() {
+    return sourceDirectory;
+  }
 }
