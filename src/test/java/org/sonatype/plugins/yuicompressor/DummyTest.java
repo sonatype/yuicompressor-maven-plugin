@@ -12,11 +12,19 @@
  */
 package org.sonatype.plugins.yuicompressor;
 
-import junit.framework.TestCase;
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
 
+import org.junit.Test;
+
+/**
+ * Dummy test to keep build automation happy.
+ *
+ * Remove once there are real tests.
+ */
 public class DummyTest
-    extends TestCase
+    extends TestSupport
 {
+  @Test
   public void testDummy() {
     // FIXME: Replace me with real tests
   }
