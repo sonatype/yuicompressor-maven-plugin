@@ -28,7 +28,7 @@
         <executions>
           <execution>
             <goals>
-              <goal>aggregate</goal>
+              <goal>aggregate-js</goal>
             </goals>
           </execution>
         </executions>

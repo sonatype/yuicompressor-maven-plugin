@@ -29,7 +29,7 @@
         <executions>
           <execution>
             <goals>
-              <goal>aggregate</goal>
+              <goal>aggregate-js</goal>
             </goals>
             <configuration>
               <sourceDirectory>src/main/custom-js</sourceDirectory>

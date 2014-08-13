@@ -54,7 +54,7 @@ public class JSLintMojo
    *
    * @TODO support non-boolean options
    * @parameter
-   * @see <a href="https://github.com/douglascrockford/JSLint/blob/master/jslint.js">jslint.hs</a>
+   * @see <a href="https://github.com/douglascrockford/JSLint/blob/master/jslint.js">jslint.js</a>
    */
   private Map<String, String> jslintOptions;
 
