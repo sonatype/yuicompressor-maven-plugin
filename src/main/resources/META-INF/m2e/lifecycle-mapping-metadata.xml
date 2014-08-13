@@ -19,7 +19,7 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>yuicompressor-maven-plugin</artifactId>
         <goals>
-          <goal>aggregate</goal>
+          <goal>aggregate-js</goal>
           <goal>aggregate-css</goal>
           <goal>jslint</goal>
         </goals>
