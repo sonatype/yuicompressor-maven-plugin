@@ -40,9 +40,9 @@ import org.mozilla.javascript.ScriptableObject;
  * @phase process-resources
  */
 public class JSLintMojo
-    extends AbstractProcessSourcesMojo
+    extends ProcessSourcesMojoSupport
 {
-  public static final String[] DEFAULT_INCLUDES = {"**/*.js"};
+  public static final String[] DEFAULT_INCLUDES = { "**/*.js" };
 
   /**
    * @parameter default-value="${basedir}/src/main/js"

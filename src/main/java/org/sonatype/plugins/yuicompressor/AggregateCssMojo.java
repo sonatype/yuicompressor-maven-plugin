@@ -27,9 +27,9 @@ import com.yahoo.platform.yui.compressor.CssCompressor;
  * @phase process-resources
  */
 public class AggregateCssMojo
-    extends AbstractAggregateMojo
+    extends AggregateMojoSupport
 {
-  public static final String[] DEFAULT_INCLUDES = {"**/*.css"};
+  public static final String[] DEFAULT_INCLUDES = { "**/*.css" };
 
   /**
    * @parameter default-value="${basedir}/src/main/css"

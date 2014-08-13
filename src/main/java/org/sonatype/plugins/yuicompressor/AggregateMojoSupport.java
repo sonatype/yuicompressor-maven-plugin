@@ -30,8 +30,8 @@ import org.codehaus.plexus.util.IOUtil;
 /**
  * Support for aggregation mojos.
  */
-abstract class AbstractAggregateMojo
-    extends AbstractProcessSourcesMojo
+abstract class AggregateMojoSupport
+    extends ProcessSourcesMojoSupport
 {
   /**
    * Insert line breaks in output after the specified column number.

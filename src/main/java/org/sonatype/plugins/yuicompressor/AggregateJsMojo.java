@@ -26,13 +26,13 @@ import org.mozilla.javascript.EvaluatorException;
 /**
  * Aggregate javascript sources.
  *
- * @goal aggregate
+ * @goal aggregate-js
  * @phase process-resources
  */
-public class AggregateMojo
-    extends AbstractAggregateMojo
+public class AggregateJsMojo
+    extends AggregateMojoSupport
 {
-  public static final String[] DEFAULT_INCLUDES = {"**/*.js"};
+  public static final String[] DEFAULT_INCLUDES = { "**/*.js" };
 
   /**
    * @parameter default-value="${basedir}/src/main/js"
