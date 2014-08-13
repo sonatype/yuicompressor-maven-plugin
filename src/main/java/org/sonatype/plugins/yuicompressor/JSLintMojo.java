@@ -26,6 +26,8 @@ import java.util.Map;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -33,34 +35,31 @@ import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
+import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOURCES;
+
 /**
  * Execute JSLint on javascript sources.
- *
- * @goal jslint
- * @phase process-resources
  */
+@Mojo(name="jslint", defaultPhase = PROCESS_RESOURCES)
 public class JSLintMojo
     extends ProcessSourcesMojoSupport
 {
   public static final String[] DEFAULT_INCLUDES = { "**/*.js" };
 
-  /**
-   * @parameter default-value="${basedir}/src/main/js"
-   */
+  @Parameter(defaultValue = "${project.basedir}/src/main/js")
   private File sourceDirectory;
+
+  // TODO support non-boolean options
 
   /**
    * JSLint options, a map, where key is jslint option name and value either true or false.
    *
-   * @TODO support non-boolean options
-   * @parameter
    * @see <a href="https://github.com/douglascrockford/JSLint/blob/master/jslint.js">jslint.js</a>
    */
+  @Parameter
   private Map<String, String> jslintOptions;
 
-  /**
-   * @parameter default-value="true"
-   */
+  @Parameter(defaultValue = "true")
   private boolean fail;
 
   @Override

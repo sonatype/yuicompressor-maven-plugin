@@ -19,26 +19,24 @@ import java.io.Reader;
 import java.io.Writer;
 
 import com.yahoo.platform.yui.compressor.CssCompressor;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
+import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOURCES;
 
 /**
  * Aggregate CSS sources.
- *
- * @goal aggregate-css
- * @phase process-resources
  */
+@Mojo(name="aggregate-css", defaultPhase = PROCESS_RESOURCES)
 public class AggregateCssMojo
     extends AggregateMojoSupport
 {
   public static final String[] DEFAULT_INCLUDES = { "**/*.css" };
 
-  /**
-   * @parameter default-value="${basedir}/src/main/css"
-   */
+  @Parameter(defaultValue = "${project.basedir}/src/main/css")
   private File sourceDirectory;
 
-  /**
-   * @parameter default-value="${project.build.outputDirectory}/${project.artifactId}-all.css"
-   */
+  @Parameter(defaultValue = "${project.build.outputDirectory}/${project.artifactId}-all.css")
   private File output;
 
   @Override

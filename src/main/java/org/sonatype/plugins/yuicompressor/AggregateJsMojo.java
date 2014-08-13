@@ -21,55 +21,49 @@ import java.io.Writer;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.mozilla.javascript.EvaluatorException;
+
+import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOURCES;
 
 /**
  * Aggregate javascript sources.
- *
- * @goal aggregate-js
- * @phase process-resources
  */
+@Mojo(name="aggregate-js", defaultPhase = PROCESS_RESOURCES)
 public class AggregateJsMojo
     extends AggregateMojoSupport
 {
   public static final String[] DEFAULT_INCLUDES = { "**/*.js" };
 
-  /**
-   * @parameter default-value="${basedir}/src/main/js"
-   */
+  @Parameter(defaultValue = "${basedir}/src/main/js")
   private File sourceDirectory;
 
-  /**
-   * @parameter default-value="${project.build.outputDirectory}/${project.artifactId}-all.js"
-   */
+  @Parameter(defaultValue = "${project.build.outputDirectory}/${project.artifactId}-all.js")
   private File output;
 
   /**
-   * [js only] Minify only, do not obfuscate.
-   *
-   * @parameter expression="${maven.yuicompressor.nomunge}" default-value="false"
+   * Minify only, do not obfuscate.
    */
+  @Parameter(property = "maven.yuicompressor.nomunge", defaultValue = "false")
   private boolean nomunge;
 
   /**
-   * [js only] Preserve unnecessary semicolons.
-   *
-   * @parameter expression="${maven.yuicompressor.preserveAllSemiColons}" default-value="false"
+   * Preserve unnecessary semicolons.
    */
+  @Parameter(property = "maven.yuicompressor.preserveAllSemiColons", defaultValue = "false")
   private boolean preserveAllSemiColons;
 
   /**
-   * [js only] disable all micro optimizations.
-   *
-   * @parameter expression="${maven.yuicompressor.disableOptimizations}" default-value="false"
+   * Disable all micro optimizations.
    */
+  @Parameter(property = "maven.yuicompressor.disableOptimizations", defaultValue = "false")
   private boolean disableOptimizations;
 
   /**
-   * [js only] Display possible errors in the code
-   *
-   * @parameter expression="${maven.yuicompressor.jswarm}" default-value="true"
+   * Display possible errors in the code.
    */
+  @Parameter(property = "maven.yuicompressor.jswarm", defaultValue = "true")
   private boolean jswarn;
 
   /**

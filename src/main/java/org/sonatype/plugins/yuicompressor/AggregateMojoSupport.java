@@ -25,6 +25,7 @@ import java.io.Writer;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
 
 /**
@@ -35,23 +36,20 @@ abstract class AggregateMojoSupport
 {
   /**
    * Insert line breaks in output after the specified column number.
-   *
-   * @parameter expression="${maven.yuicompressor.linebreakpos}" default-value="0"
    */
+  @Parameter(property = "maven.yuicompressor.linebreakpos", defaultValue = "0")
   protected int linebreakpos;
 
   /**
    * Aggregate only, no minification.
-   *
-   * @parameter expression="${maven.yuicompressor.nominify}" default-value="false"
    */
+  @Parameter(property = "maven.yuicompressor.nominify", defaultValue = "false")
   protected boolean nominify;
 
   /**
    * Insert new line after each concatenation.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue = "true")
   protected boolean insertNewLine;
 
   @Override

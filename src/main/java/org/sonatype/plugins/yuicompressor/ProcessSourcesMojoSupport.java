@@ -21,6 +21,8 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.Scanner;
 
 /**
@@ -31,32 +33,28 @@ abstract class ProcessSourcesMojoSupport
 {
   /**
    * List of sources includes patterns.
-   *
-   * @parameter
    */
+  @Parameter
   protected String[] includes;
 
   /**
    * List of sources excludes patterns.
-   *
-   * @parameter
    */
+  @Parameter
   protected String[] excludes;
 
   /**
    * Whether sources are required (the default) or optional. The build will fail if sources are not present and value
    * of this parameter is <code>true</code>. Setting to <code>false</code> can be useful when mojo is configured in
    * parent pom.xml and applies to multiple modules.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue = "true")
   protected boolean required;
 
-  /**
-   * @component
-   */
+  @Component
   protected BuildContext buildContext;
 
+  @Override
   public void execute() throws MojoExecutionException {
     List<File> sources = new ArrayList<File>();
 
