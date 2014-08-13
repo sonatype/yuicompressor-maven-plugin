@@ -33,6 +33,8 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 /**
+ * Execute JSLint on javascript sources.
+ *
  * @goal jslint
  * @phase process-resources
  */

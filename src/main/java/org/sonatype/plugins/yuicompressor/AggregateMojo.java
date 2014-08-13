@@ -24,6 +24,8 @@ import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 import org.mozilla.javascript.EvaluatorException;
 
 /**
+ * Aggregate javascript sources.
+ *
  * @goal aggregate
  * @phase process-resources
  */

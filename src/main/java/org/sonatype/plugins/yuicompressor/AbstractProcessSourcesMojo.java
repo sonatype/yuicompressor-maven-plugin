@@ -23,6 +23,9 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.Scanner;
 
+/**
+ * Support for source processing mojos.
+ */
 abstract class AbstractProcessSourcesMojo
     extends AbstractMojo
 {
