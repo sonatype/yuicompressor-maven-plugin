@@ -28,6 +28,8 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOUR
 
 /**
  * Aggregate javascript sources.
+ *
+ * @since 1.0
  */
 @Mojo(name="aggregate-js", defaultPhase = PROCESS_RESOURCES)
 public class AggregateJsMojo

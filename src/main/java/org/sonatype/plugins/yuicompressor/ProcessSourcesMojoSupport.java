@@ -26,6 +26,8 @@ import org.codehaus.plexus.util.Scanner;
 
 /**
  * Support for source processing mojos.
+ *
+ * @since 1.0
  */
 abstract class ProcessSourcesMojoSupport
     extends AbstractMojo

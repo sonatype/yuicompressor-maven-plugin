@@ -38,6 +38,8 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOUR
 
 /**
  * Execute JSLint on javascript sources.
+ *
+ * @since 1.0
  */
 @Mojo(name="jslint", defaultPhase = PROCESS_RESOURCES)
 public class JSLintMojo

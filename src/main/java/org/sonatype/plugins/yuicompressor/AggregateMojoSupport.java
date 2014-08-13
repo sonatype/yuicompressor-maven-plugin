@@ -29,6 +29,8 @@ import org.codehaus.plexus.util.IOUtil;
 
 /**
  * Support for aggregation mojos.
+ *
+ * @since 1.0
  */
 abstract class AggregateMojoSupport
     extends ProcessSourcesMojoSupport

@@ -25,6 +25,8 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOUR
 
 /**
  * Aggregate CSS sources.
+ *
+ * @since 1.0
  */
 @Mojo(name="aggregate-css", defaultPhase = PROCESS_RESOURCES)
 public class AggregateCssMojo
