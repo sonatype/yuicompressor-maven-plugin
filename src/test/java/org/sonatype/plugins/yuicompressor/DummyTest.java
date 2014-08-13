@@ -10,6 +10,7 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
  */
+
 package org.sonatype.plugins.yuicompressor;
 
 import junit.framework.TestCase;
@@ -17,7 +18,7 @@ import junit.framework.TestCase;
 public class DummyTest
     extends TestCase
 {
-    public void testDummy() {
-        // FIXME: Replace me with real tests
-    }
+  public void testDummy() {
+    // FIXME: Replace me with real tests
+  }
 }
