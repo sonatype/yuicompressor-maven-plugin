@@ -110,7 +110,7 @@ public class JSLintMojo
       }
     }
 
-    Object[] jsargs = {loadSource(source), options};
+    Object[] jsargs = { loadSource(source), options };
 
     boolean passed = (Boolean) jslint.call(cx, scope, scope, jsargs);
 
