@@ -13,6 +13,7 @@
 
 package org.sonatype.plugins.yuicompressor;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -139,7 +140,7 @@ public class JSLintMojo
   }
 
   private String loadSource(File source) throws IOException {
-    InputStream is = new FileInputStream(source);
+    InputStream is = new BufferedInputStream(new FileInputStream(source));
     try {
       return IOUtil.toString(is);
     }
