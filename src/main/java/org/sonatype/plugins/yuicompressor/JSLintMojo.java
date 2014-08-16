@@ -65,11 +65,21 @@ public class JSLintMojo
 
   @Override
   protected void processSources(List<File> sources) throws MojoExecutionException {
-    boolean passed = true;
+    int errors = 0;
     for (File source : sources) {
       Context cx = Context.enter();
       try {
-        passed = processSource(source, cx) && passed;
+        getLog().debug("Processing: " + source);
+        int result = processSource(source, cx);
+        if (result != 0) {
+          if (fail) {
+            getLog().error(source + ": " + result + " errors");
+          }
+          else {
+            getLog().warn(source + ": " + result + " errors");
+          }
+        }
+        errors += result;
       }
       catch (IOException e) {
         throw new MojoExecutionException("Could not execute jslint on " + source, e);
@@ -79,19 +89,24 @@ public class JSLintMojo
       }
     }
 
-    if (fail && !passed) {
-      throw new MojoExecutionException("There were jslint errors");
+    if (errors != 0) {
+      if (fail) {
+        getLog().error("Found " + errors + " errors");
+        throw new MojoExecutionException("Found " + errors + " errors");
+      }
+      else {
+        getLog().warn("Found " + errors + " errors");
+      }
     }
-
   }
 
   /**
-   * Returns <code>true</code> if all jslint tests passed, <code>false</code> if there were problems.
+   * Process source file, returns number of detected errors.
    */
-  protected boolean processSource(File source, Context cx) throws IOException, MojoExecutionException {
+  protected int processSource(File source, Context cx) throws IOException, MojoExecutionException {
     if (!buildContext.hasDelta(source)) {
       // limitation of buildcontext api, no way to report errors from previous executions
-      return true;
+      return 0;
     }
 
     buildContext.removeMessages(source);
@@ -113,26 +128,27 @@ public class JSLintMojo
     Object[] jsargs = { loadSource(source), options };
 
     boolean passed = (Boolean) jslint.call(cx, scope, scope, jsargs);
-
-    if (!passed) {
-      NativeArray errors = (NativeArray) jslint.get("errors", jslint);
-
-      for (int i = 0; i < errors.getLength(); i++) {
-        Scriptable error = (Scriptable) errors.get(i, errors);
-        if (error == null) {
-          // apparent bug in jslint, when "too many errors" is reported, last array element is null
-          continue;
-        }
-        int line = ((Number) ScriptableObject.getProperty(error, "line")).intValue();
-        int column = ((Number) ScriptableObject.getProperty(error, "character")).intValue();
-        String reason = (String) ScriptableObject.getProperty(error, "reason");
-
-        int severity = fail ? BuildContext.SEVERITY_ERROR : BuildContext.SEVERITY_WARNING;
-        buildContext.addMessage(source, line, column, reason, severity, null);
-      }
+    if (passed) {
+      return 0;
     }
 
-    return passed;
+    NativeArray errors = (NativeArray) jslint.get("errors", jslint);
+
+    for (int i = 0; i < errors.getLength(); i++) {
+      Scriptable error = (Scriptable) errors.get(i, errors);
+      if (error == null) {
+        // apparent bug in jslint, when "too many errors" is reported, last array element is null
+        continue;
+      }
+      int line = ((Number) ScriptableObject.getProperty(error, "line")).intValue();
+      int column = ((Number) ScriptableObject.getProperty(error, "character")).intValue();
+      String reason = (String) ScriptableObject.getProperty(error, "reason");
+
+      int severity = fail ? BuildContext.SEVERITY_ERROR : BuildContext.SEVERITY_WARNING;
+      buildContext.addMessage(source, line, column, reason, severity, null);
+    }
+
+    return (int)errors.getLength();
   }
 
   private boolean toBoolean(String value) {
