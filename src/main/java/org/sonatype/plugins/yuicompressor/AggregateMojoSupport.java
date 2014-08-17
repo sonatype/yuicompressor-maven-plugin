@@ -93,6 +93,7 @@ abstract class AggregateMojoSupport
 
         output.getParentFile().mkdirs();
 
+        getLog().info("Writing: " + output);
         OutputStream out = buildContext.newFileOutputStream(output);
         try {
           IOUtil.copy(buf.getBuffer().toString(), out);
